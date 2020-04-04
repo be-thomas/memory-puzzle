@@ -4,17 +4,17 @@ from timeit import default_timer as timer
 
 
 class ScoreBoard:
-'''
-ScoreBoard class handles all input output operations related to storing and retrieving Top High Scores
-The data in file is saved in this format-
-Name
-score
-Name
-score
-...
-
-If the scores are manually edited, this class will detect the format and delete it
-'''
+    '''
+    ScoreBoard class handles all input output operations related to storing and retrieving Top High Scores
+    The data in file is saved in this format-
+    Name
+    score
+    Name
+    score
+    ...
+    
+    If the scores are manually edited, this class will detect the format and delete it
+    '''
 
     def __init__(self):
         self.path = "scores.txt"
@@ -111,9 +111,9 @@ If the scores are manually edited, this class will detect the format and delete 
 
 
 class Grid:
-'''
-Grid class handles the drawing, updating score and processing inputs for the game
-'''
+    '''
+    Grid class handles the drawing, updating score and processing inputs for the game
+    '''
     def __init__(self, sb):
         self.score, self.scoreboard = 0, sb
         self.revealed = []    #this array contains tuples of coordinates of the revealed places, in this format - (x, y)
