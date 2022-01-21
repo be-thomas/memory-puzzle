@@ -132,8 +132,24 @@ class Grid:
             self.board.append(y)
         #note the time when the player started playing
         self.started = timer()
+        self.interrupted = False
+        self.mode = mode
+        if self.mode == 'GUI':
+            pygame.init()
+            self.clock = pygame.time.Clock()
+            self.screen = pygame.display.set_mode((500, 500))
+            pygame.display.set_caption("Memory Puzzle")
+            pygame.font.init()
+            self.font = pygame.font.SysFont('Arial', 20)
+            self.font1 = pygame.font.SysFont('Arial', 60)
 
     def draw(self):
+        if self.mode == 'CLI':
+            self.drawCLI()
+        elif self.mode == 'GUI':
+            self.drawGUI()
+
+    def drawCLI(self):
         #draws/updates the board
         print("Score: " + str(self.score)+"\n\n")
         caption = "    " + " ".join([str(i) for i in range(1, 6)])
@@ -158,6 +174,41 @@ class Grid:
             print(line)
         print("  |___________|\n\n\n")
 
+    def drawGUI(self):
+        ret = None
+        # ---- Main Loop for GUI ----
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                print("Game Interrupted!")
+                self.interrupted = True
+                ret = 0
+        vw, vh = pygame.display.get_surface().get_size()
+        mx, my = pygame.mouse.get_pos()
+        left, middle, right = pygame.mouse.get_pressed()
+        marginTop = 30
+        padding = 3
+        bw = vw / 5
+        bh = (vh - marginTop) / 4
+        self.screen.fill((255, 255, 255))
+        # Display Score
+        self.screen.blit(self.font.render('Score: ' + str(self.score), False, (0, 0, 0)), (10, 0))
+        for y in range(4):
+            for x in range(5):
+                px = int(x * bw + padding)
+                py = marginTop + int(y * bh + padding)
+                pw = int(bw - padding*2)
+                ph = int(bh - padding*2)
+                if left and mx >= px and mx <= (px+pw) and my >= py and my <= (py+ph):
+                    ret = (x, y)
+                pygame.draw.rect(self.screen, (128, 128, 128), [px, py, pw, ph], 0)
+                if (x, y) in self.revealed:
+                    self.screen.blit(self.font1.render(str(self.board[y][x]), False, (0, 0, 0)), (px + padding, py + padding))
+
+
+        pygame.display.flip()
+        self.clock.tick(60)
+        return ret
+
     def process_input(self):
         alphas = ["A", "B", "C", "D", "a", "b", "c", "d"]
         alpha_dict = {"A": 0, "B": 1, "C": 2, "D": 3, "a": 0, "b": 1, "c": 2, "d": 3}
@@ -165,6 +216,18 @@ class Grid:
         a, b = '', ''
         x, y = 0, 0
         while True:
+            if self.mode == 'GUI':
+                temp = self.drawGUI()
+                if temp == 0:
+                    return
+                elif temp is None:
+                    continue
+                else:
+                    x, y = temp
+                    print("RET: ", temp, self.revealed)
+                    if (x, y) not in self.revealed:
+                        break
+                continue
             a = input("1st set of coordinates: ").replace(" ", "")
 #ignore spaces
             at = a.split(",") #ignore ","
@@ -192,6 +255,17 @@ class Grid:
         self.cls(); self.draw()
 # let the user see the revealed area
         while True:
+            if self.mode == 'GUI':
+                temp = self.drawGUI()
+                if temp == 0:
+                    return
+                elif temp is None:
+                    continue
+                else:
+                    x, y = temp
+                    if (x, y) not in self.revealed:
+                        break
+                continue
             b = input("2nd set of coordinates: ").replace(" ", "")
             bt = a.split(",")
             if len(b) < 2:
@@ -229,6 +303,12 @@ class Grid:
         print("\n"*25)
 
     def finish(self):
+        if self.mode == 'GUI':
+            pygame.quit()
+        if self.interrupted:
+            print('Game Interrupted!')
+            self.cls()
+            return
         #note the time when the player finished
         self.ended = timer()
         self.cls()
@@ -254,6 +334,8 @@ class Grid:
 # wait 2 seconds
         self.cls()
     def finished(self):
+        if self.interrupted:
+            return True
         #if all the 10 pairs are revealed return true, otherwise false
         return len(self.revealed) == 20
 
